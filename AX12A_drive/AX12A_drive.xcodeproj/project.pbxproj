@@ -80,6 +80,7 @@
 			);
 			path = AX12A_drive;
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 /* End PBXGroup section */
 
