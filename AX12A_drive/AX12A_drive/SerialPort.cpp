@@ -113,19 +113,21 @@ void SerialPort::setRxIntMsk(bool enable)
 
 
 // Read data from buffer
-int SerialPort::read()
+unsigned char * SerialPort::read()
 {
-  if (!isListening())
-    return -1;
-
-  // Empty buffer?
-  if (_receive_buffer_head == _receive_buffer_tail)
-    return -1;
-
-  // Read from "head"
-  int d = _receive_buffer[_receive_buffer_head]; // grab next byte
-  _receive_buffer_head = (_receive_buffer_head + 1) % _SS_MAX_RX_BUFF;
-  return d;
+//  if (!isListening())
+//    return -1;
+//
+//  // Empty buffer?
+//  if (_receive_buffer_head == _receive_buffer_tail)
+//    return -1;
+//
+//  // Read from "head"
+//  int d = _receive_buffer[_receive_buffer_head]; // grab next byte
+//  _receive_buffer_head = (_receive_buffer_head + 1) % _SS_MAX_RX_BUFF;
+    
+    
+  return Data;
 }
 
 int SerialPort::available()
@@ -133,7 +135,7 @@ int SerialPort::available()
   if (!isListening())
     return 0;
 
-  return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
+  return 1;
 }
 
 size_t SerialPort::write(int b)
@@ -147,12 +149,12 @@ size_t SerialPort::write(int b)
 size_t SerialPort::write(const unsigned char *buffer, /*size_t*/ int size)
 {
 
-    printf("size:%d\n",size);
+    printf("size:%d       ",size);
     
     for (int i=0; i<size; i++) {
         printf("%02x ",buffer[i]);
     }
-  printf("\n2 okkkkkkkkkk\n",*buffer);
+    printf("\n");
   return size;
 }
 
@@ -168,8 +170,30 @@ void SerialPort::flushRx()
 
 }
 
+//读写标志位
+bool SerialPort::downDirectionPort()
+{
+    printf("DirectionPort is down!\n");
+    return true;
+}
+bool SerialPort::upDirectionPort()
+{
+    printf("DirectionPort is up!\n");
+    return true;
+}
+  
+//初始化接收数据
+  void SerialPort::init_Data(unsigned char * data)
+{
+    for (int i = 0; i<7; i++) {
+        Data[0] = data[i];
+    }
+}
 
-
-
+//设置应该读取的字节数
+void SerialPort::setnByteToBeRead(unsigned char a)
+{
+    nByteToBeRead = a;
+}
 
 #endif  // (__SAM3X8E__)

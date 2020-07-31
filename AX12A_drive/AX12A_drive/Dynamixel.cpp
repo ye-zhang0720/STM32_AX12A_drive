@@ -43,7 +43,7 @@ bool dxl::setId(const byte  ID, const byte newID)
 { return sendDxlWrite(ID, DXL_ADD_ID, &newID, 1 );}
 bool dxl::readId(const byte ID)
 { return sendDxlRead(ID, DXL_ADD_ID , 1); }
- 
+
 bool dxl::setBaudRate(const byte  ID, const byte baudRate)
 {  return sendDxlWrite(ID, DXL_ADD_BAUDRATE, &baudRate, 1 );}
 bool dxl::readBaudRate(const byte ID)
@@ -88,7 +88,7 @@ bool dxl::setStatusReturnLevel(const byte  ID, const byte Status)
 { return sendDxlWrite(ID, DXL_ADD_STATUS_RETURN_LEVEL , &Status, 1 );}
 bool dxl::readStatusReturnLevel(const byte ID)
 { return sendDxlRead(ID, DXL_ADD_STATUS_RETURN_LEVEL , 1); }
-  
+
 bool dxl::setAlarmLed(const byte  ID, const byte Status)
 { return sendDxlWrite(ID, DXL_ADD_ALARM_LED , &Status, 1 );}
 bool dxl::readAlarmLed(const byte ID)
@@ -118,8 +118,8 @@ bool dxl::setGoalPosition(const byte ID, const short Position)
 
 bool dxl::setGoalPositionAtSpeed(const byte ID, const short Position, const short Speed)
 {
-  const short params[] = { Position, Speed };
-  return sendDxlWrite(ID, DXL_ADD_GOAL_POSITION, (const byte*) params, 4 );
+    const short params[] = { Position, Speed };
+    return sendDxlWrite(ID, DXL_ADD_GOAL_POSITION, (const byte*) params, 4 );
 }
 
 bool dxl::setMovingSpeed(const byte ID, const short Speed)
@@ -166,146 +166,167 @@ bool dxl::readPunch(const byte ID)
 
 bool dxl::sendDxlCommand(const byte ID, const byte dxlCommand)
 {
-  byte sentence[6];
-  byte Checksum = (~(ID + 0x02 + dxlCommand )) & 0xFF;
-
-  sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
-  sentence[2] = ID;                       // Servo ID
-  sentence[3] = 0x02;                     // length
-  sentence[4] = dxlCommand;               // dxl instruction
-  sentence[5] = Checksum;                 // Checksum
- 
-  if(writeRaw(sentence, 6))
-  {
-    _nByteToBeRead = 6;
-    _currentId = ID;
-    return true;
-  }
-
-  _nByteToBeRead = 0;
-  _currentId = 0;
-  return false;
-
+    byte sentence[6];
+    byte Checksum = (~(ID + 0x02 + dxlCommand )) & 0xFF;
+    
+    sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
+    sentence[2] = ID;                       // Servo ID
+    sentence[3] = 0x02;                     // length
+    sentence[4] = dxlCommand;               // dxl instruction
+    sentence[5] = Checksum;                 // Checksum
+    
+    if(writeRaw(sentence, 6))
+    {
+        _nByteToBeRead = 6;
+        _currentId = ID;
+        return true;
+    }
+    
+    _nByteToBeRead = 0;
+    _currentId = 0;
+    return false;
+    
 }
 
 
 bool dxl::sendDxlRegData(const byte ID, const byte dxlAddress, const byte *params, const byte nByteToBeWritten )
 {
-  byte i;
-  const byte txDataLength =  nByteToBeWritten + 3 ;    // length is "number of parameters N +2"
-  byte sentence[7 + nByteToBeWritten];
-  byte Checksum = 0;
-
-  for (i = 0; i < nByteToBeWritten; i++)
-    Checksum += params[i];
+    byte i;
+    const byte txDataLength =  nByteToBeWritten + 3 ;    // length is "number of parameters N +2"
+    byte sentence[7 + nByteToBeWritten];
+    byte Checksum = 0;
     
-  Checksum = (~(ID + txDataLength  + DXL_REG_WRITE + dxlAddress + Checksum )) & 0xFF;
-
-  sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
-  sentence[2] = ID;                       // Servo ID
-  sentence[3] = txDataLength;             // length
-  sentence[4] = DXL_REG_WRITE;           // write instruction
-  sentence[5] = dxlAddress;               // adress to start
-             
-  for (i = 0; i < nByteToBeWritten; i++)  // write params ( first one is address)
-    sentence[i+6] = params[i];
-  
-  sentence[i+6] = Checksum;
-
-  if(writeRaw(sentence, txDataLength + 4))
-  {
-    _nByteToBeRead = 6;
-    _currentId = ID;
-    return true;
-  }
-
-  _nByteToBeRead = 0;
-  _currentId = 0;
-  return false;
-  
+    for (i = 0; i < nByteToBeWritten; i++)
+        Checksum += params[i];
+    
+    Checksum = (~(ID + txDataLength  + DXL_REG_WRITE + dxlAddress + Checksum )) & 0xFF;
+    
+    sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
+    sentence[2] = ID;                       // Servo ID
+    sentence[3] = txDataLength;             // length
+    sentence[4] = DXL_REG_WRITE;           // write instruction
+    sentence[5] = dxlAddress;               // adress to start
+    
+    for (i = 0; i < nByteToBeWritten; i++)  // write params ( first one is address)
+        sentence[i+6] = params[i];
+    
+    sentence[i+6] = Checksum;
+    
+    if(writeRaw(sentence, txDataLength + 4))
+    {
+        _nByteToBeRead = 6;
+        _currentId = ID;
+        return true;
+    }
+    
+    _nByteToBeRead = 0;
+    _currentId = 0;
+    return false;
+    
 }
 
 bool dxl::sendDxlWrite(const byte ID, const byte dxlAddress, const byte *params, const byte nByteToBeWritten)
 {
-  byte i;
-  const byte txDataLength =  nByteToBeWritten + 3 ;    // length is "number of parameters N +2"
-  byte sentence[7 + nByteToBeWritten];
-  byte Checksum = 0;
-
-  for (i = 0; i < nByteToBeWritten; i++)
-    Checksum += params[i];
+    byte i;
+    const byte txDataLength =  nByteToBeWritten + 3 ;    // length is "number of parameters N +2"
+    byte sentence[7 + nByteToBeWritten];
+    byte Checksum = 0;
     
-  Checksum = (~(ID + txDataLength  + DXL_WRITE_DATA + dxlAddress + Checksum )) & 0xFF;
-
-  sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
-  sentence[2] = ID;                       // Servo ID
-  sentence[3] = txDataLength;             // length
-  sentence[4] = DXL_WRITE_DATA;           // write instruction
-  sentence[5] = dxlAddress;               // adress to start
-             
-  for (i = 0; i < nByteToBeWritten; i++)  // write params ( first one is address)
-    sentence[i+6] = params[i];
-  
-  sentence[i+6] = Checksum;
-
-  if(writeRaw(sentence, txDataLength + 4))
-  {
-    _nByteToBeRead = 6;
-    _currentId = ID;
-    return true;
-  }
-
-  _nByteToBeRead = 0;
-  _currentId = 0;
-  return false;
-
+    for (i = 0; i < nByteToBeWritten; i++)
+        Checksum += params[i];
+    
+    Checksum = (~(ID + txDataLength  + DXL_WRITE_DATA + dxlAddress + Checksum )) & 0xFF;
+    
+    sentence[0] = sentence[1] = DXL_START;  // 2 start bytes
+    sentence[2] = ID;                       // Servo ID
+    sentence[3] = txDataLength;             // length
+    sentence[4] = DXL_WRITE_DATA;           // write instruction
+    sentence[5] = dxlAddress;               // adress to start
+    
+    for (i = 0; i < nByteToBeWritten; i++)  // write params ( first one is address)
+        sentence[i+6] = params[i];
+    
+    sentence[i+6] = Checksum;
+    
+    if(writeRaw(sentence, txDataLength + 4))
+    {
+        _nByteToBeRead = 6;
+        _currentId = ID;
+        return true;
+    }
+    
+    _nByteToBeRead = 0;
+    _currentId = 0;
+    return false;
+    
 }
 
 bool dxl::sendDxlRead(const byte ID, const byte dxlAddress, const byte nByteToBeRead)
 {
-
-  byte Checksum = (~(ID +  4  + DXL_READ_DATA + dxlAddress + nByteToBeRead)) & 0xFF;
-  byte sentence[] ={ DXL_START, DXL_START, ID, 0x04, DXL_READ_DATA, dxlAddress, nByteToBeRead, Checksum};
-
-  if(writeRaw(sentence, 8))
-  {
-    _nByteToBeRead = 6 + nByteToBeRead;
-    _currentId = ID;
-    return true;
-  }
-
-  _nByteToBeRead = 0;
-  _currentId = 0;
-  return false;
-
+    
+    byte Checksum = (~(ID +  4  + DXL_READ_DATA + dxlAddress + nByteToBeRead)) & 0xFF;
+    byte sentence[] ={ DXL_START, DXL_START, ID, 0x04, DXL_READ_DATA, dxlAddress, nByteToBeRead, Checksum};
+    
+    if(writeRaw(sentence, 8))
+    {
+        _nByteToBeRead = 6 + nByteToBeRead;
+        _currentId = ID;
+        _port->setnByteToBeRead(_nByteToBeRead);
+        return true;
+    }
+    
+    _nByteToBeRead = 0;
+    _currentId = 0;
+    return false;
+    
 }
 
 bool dxl::isBusy()
 {
-    return false;  // We are waiting some answer
+    //    if(micros() < _currentReturnDelayTime)
+    //        return true;
+    //      else
+    //        return false;  // We are waiting some answer
+    //    return false;  // We are waiting some answer
+    return true;
 }
 
 bool dxl::dxlDataReady()
 {
-
-
-  return true;
+    if(_nByteToBeRead == 0)
+        return false;
+    
+    if(_port->available()>=_nByteToBeRead)
+    {
+        if(_currentReturnDelayTime == 0)
+            //_currentReturnDelayTime = _returnDelayTime + micros();
+            
+            return true;
+    }
+    
+    //     if(millis()>=_currentTimeout )
+    //     {
+    //       _error |= DXL_ERR_RX_TIMEOUT;
+    //       return true;
+    //     }
+    
+    return false;
 }
 
 unsigned short dxl::readDxlResult()
 {
-  if(_nByteToBeRead == 0)
-    return _dxlResult;
-  else
-    return readDxlData();
+    if(_nByteToBeRead == 0)
+        return _dxlResult;
+    else
+        return readDxlData();
 }
 
 unsigned short dxl::readDxlError()
 {
-  if(_nByteToBeRead != 0)
-    readDxlData();
-  
-  return _error;
+    if(_nByteToBeRead != 0)
+        readDxlData();
+    
+    return _error;
 }
 
 
@@ -317,90 +338,92 @@ unsigned short dxl::readDxlError()
 // The only function to write on serial port
 bool dxl::writeRaw( const byte *sentence, const byte nByteToBeWritten)
 {
-   while(_port->available() > 0)
-    _port->read();            // clear the  Rx buffer
-
-  _error = DXL_ERR_SUCCESS;  // purge error
-  _dxlResult = 0;            // purge result
-
-  if(_port-> write(sentence, nByteToBeWritten) == nByteToBeWritten)
-  {
-    //_currentTimeout = millis() + _timeout;
-    _currentReturnDelayTime = 0;
-    return true;
-  }
-  else
-  {
-    _currentTimeout = 0;
-    return false;
-  }
+    if(!_port->upDirectionPort())
+        return false;
+    while(_port->available() > 0)
+        _port->read();            // clear the  Rx buffer
+    
+    _error = DXL_ERR_SUCCESS;  // purge error
+    _dxlResult = 0;            // purge result
+    
+    if(_port-> write(sentence, nByteToBeWritten) == nByteToBeWritten)
+    {
+        //_currentTimeout = millis() + _timeout;
+        _currentReturnDelayTime = 0;
+        if(!_port->downDirectionPort())
+            return false;
+        return true;
+    }
+    else
+    {
+        _currentTimeout = 0;
+        return false;
+    }
 }
 
 // The only function to read on serial port
 unsigned short dxl::readDxlData()
 {
-  if(_port->available()<_nByteToBeRead)
-  {
-    while(_port->available() > 0)
-      _port->read();            // clear the  Rx buffer
+    if(_port->available() == 0)
+    {
+        return _error;
+    }
+    
+    byte check = 0;             // used to compute checksum
+    byte header[5];             // 2 start byte + ID + length + Error
+    byte nDataBytes = _nByteToBeRead - 6;
+    byte result[nDataBytes];    // where the data will be saved
+    
+    unsigned char * _data;    //接收到的数据
+    
+    _data = _port->read();
+    // Read the incoming bytes
+    header[0] = _data[0];   // 2 Starts Bytes
+    header[1] = _data[1];
+
+    header[2] = _data[2];   // Servo ID
+    header[3] = _data[3];   // Length
+    header[4] = _data[4];   // Error
+
+    for (byte i = 0; i < nDataBytes; i++)
+    {
+        result[i] = _data[5];
+        check +=  result[i];
+    }
+
+    byte Checksum  = _data[6];   // Checksum
+    
+    if (!( ( header[0] == DXL_START) & ( header[1]  == DXL_START) ))
+        _error |=  DXL_ERR_RX_FAIL;     // No header found
+    
+    if (header[2]!=_currentId)
+        _error |=DXL_ERR_ID;            // The response comes from another Servo !
+    
+    if (header[3]!= nDataBytes + 2)
+    {
+        nDataBytes = header[3] - 2;
+        _error |=DXL_ERR_RX_LENGTH;             // Servo send an error we push it. To catch it error mask should be used
+    }
+    
+    if (header[4]!=0)
+        _error |=header[4];             // Servo send an error we push it. To catch it error mask should be used
+    
+    
+    if (Checksum != ((~(header[2] + header[3]  + header[4] + check )) & 0xFF ))
+        _error |=DXL_ERR_RX_CORRUPT;    // Checksum error
+    
+    if(nDataBytes == 0)
+        _dxlResult = 0;
+    else if(nDataBytes == 1)
+        _dxlResult = (unsigned short) result[0];
+    else if(nDataBytes == 2)
+        _dxlResult = (result[1] << 8) | result[0];   // (msb << 8) | lsb
+    
     _nByteToBeRead = 0;
     _currentTimeout = 0;
     _currentId = 0;
-    return _error;
-  }
-
-  byte check = 0;             // used to compute checksum
-  byte header[5];             // 2 start byte + ID + length + Error
-  byte nDataBytes = _nByteToBeRead - 6;
-  byte result[nDataBytes];    // where the data will be saved
-  
-  // Read the incoming bytes
-  header[0] = _port->read();   // 2 Starts Bytes
-  header[1] = _port->read();
     
-  header[2] = _port->read();   // Servo ID
-  header[3] = _port->read();   // Length
-  header[4] = _port->read();   // Error
-
-  for (byte i = 0; i < nDataBytes; i++)
-  {
-    result[i] = _port->read();
-    check +=  result[i];
-  }
-
-  byte Checksum  = _port->read();   // Checksum
-  
-  if (!( ( header[0] == DXL_START) & ( header[1]  == DXL_START) ))
-    _error |=  DXL_ERR_RX_FAIL;     // No header found
-
-  if (header[2]!=_currentId)
-    _error |=DXL_ERR_ID;            // The response comes from another Servo !
-
-  if (header[3]!= nDataBytes + 2)
-  {
-    nDataBytes = header[3] - 2;
-    _error |=DXL_ERR_RX_LENGTH;             // Servo send an error we push it. To catch it error mask should be used
-  }
-
-  if (header[4]!=0)
-    _error |=header[4];             // Servo send an error we push it. To catch it error mask should be used
-  
-
-  if (Checksum != ((~(header[2] + header[3]  + header[4] + check )) & 0xFF ))
-    _error |=DXL_ERR_RX_CORRUPT;    // Checksum error
-
-  if(nDataBytes == 0)
-    _dxlResult = 0;
-  else if(nDataBytes == 1)
-    _dxlResult = (unsigned short) result[0];
-  else if(nDataBytes == 2)
-    _dxlResult = (result[1] << 8) | result[0];   // (msb << 8) | lsb
-    
-  _nByteToBeRead = 0;
-  _currentTimeout = 0;
-  _currentId = 0;
-
-  return  _dxlResult ;               // Returns the error, if OK, DXL_ERR_SUCCESS
+    return  _dxlResult ;               // Returns the error, if OK, DXL_ERR_SUCCESS
 }
 
 
